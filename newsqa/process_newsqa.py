@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import string
+import pickle
 import logging # 引入日志模块
 from bisect import bisect_left # 引入数组二分法查找,返回插入列表的index
 
@@ -23,7 +24,7 @@ with open(os.path.join(data_dir, 'combined-newsqa-data-v1.json'), 'r') as fin:
 invalid_chrs = set(string.punctuation + string.whitespace) # 无效字符集!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~和空字符
 tokenizer = RobertaTokenizer.from_pretrained(DEFAULT_MODEL_NAME)
 train_batches, test_json, test_batches, cnt = [], {}, [], 0
-for data in tqdm(dataset['data']):
+for data in tqdm(dataset['data'][:3]):
     """将每段文本用\n分割开并去除\n符号储存在sentences中
     将分割位置的index记录在sen_offsets中
     """
@@ -35,7 +36,6 @@ for data in tqdm(dataset['data']):
                 sen_offsets.append(i)
             last_newline = i
     tokenized_sentences = [tokenizer.tokenize(sen) for sen in sentences]
-    # print(f"\033[0;35mTokenized_sentences:\033[0;36m{tokenized_sentences}\033[0m")
     article_buf = None
 
     for i, raw_q in enumerate(data['questions']):
@@ -99,11 +99,14 @@ for data in tqdm(dataset['data']):
                     test_json[qid] = 'None' if 'noAnswer' in raw_q['consensus'] else (data['text'][s:e])
             else:
                 logging.warning((qid, raw_q['q']))
-    break
-# DATA_PATH = os.path.join(root_dir, 'data')
-# with open(os.path.join(DATA_PATH, 'newsqa_{}_{}.pkl'.format('train', DEFAULT_MODEL_NAME)), 'wb') as fout:
-#     pickle.dump(train_batches, fout)
-# with open(os.path.join(DATA_PATH, 'newsqa_{}_{}.pkl'.format('test', DEFAULT_MODEL_NAME)), 'wb') as fout:
-#     pickle.dump(test_batches, fout)
-# with open(os.path.join(DATA_PATH, 'newsqa_test.json'), 'w') as fout:
-#     json.dump(test_json, fout)
+
+DATA_PATH = os.path.join(root_dir, 'data')
+if not os.path.exists(DATA_PATH):
+    os.makedirs(DATA_PATH)
+
+with open(os.path.join(DATA_PATH, 'newsqa_{}_{}.pkl'.format('train', DEFAULT_MODEL_NAME)), 'wb') as fout:
+    pickle.dump(train_batches, fout)
+with open(os.path.join(DATA_PATH, 'newsqa_{}_{}.pkl'.format('test', DEFAULT_MODEL_NAME)), 'wb') as fout:
+    pickle.dump(test_batches, fout)
+with open(os.path.join(DATA_PATH, 'newsqa_test.json'), 'w') as fout:
+    json.dump(test_json, fout)

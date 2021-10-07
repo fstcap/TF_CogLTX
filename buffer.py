@@ -11,12 +11,26 @@ class Block:
         self.estimation = 0
         self.__dict__.update(kwargs)
     def __lt__(self, rhs):
+        """
+        逻辑运算小于，比较两个类的pos大小按快的原有顺序排列
+        :param rhs:
+        :return:
+        """
         return self.blk_type < rhs.blk_type or (self.blk_type == rhs.blk_type and self.pos < rhs.pos)
     def __ne__(self, rhs):
+        """
+        类的逻辑运算不相等
+        :param rhs:
+        :return:
+        """
         return self.pos != rhs.pos or self.blk_type != rhs.blk_type
     def __len__(self):
         return len(self.ids)
     def __str__(self):
+        """
+        显示块代表的字符串
+        :return:
+        """
         return Block.tokenizer.convert_tokens_to_string(Block.tokenizer.convert_ids_to_tokens(self.ids))
 
 class Buffer:
@@ -33,16 +47,16 @@ class Buffer:
                         ]
         '''
         ret = Buffer()
-        updiv = lambda a, b: (a - 1) // b + 1 # 计算分组后的组数
+        updiv = lambda a, b: (a - 1) // b + 1
         if hard:
             for sid, tsen in enumerate(d):
                 psen = properties[sid] if properties is not None else []
-                num = updiv(len(tsen), BLOCK_SIZE)  # cls
-                bsize = updiv(len(tsen), num)
+                num = updiv(len(tsen), BLOCK_SIZE)  # 计算以63长度每快，分组加一
+                bsize = updiv(len(tsen), num) # 最终有num组，每块长度是bsize
                 for i in range(num):
-                    st, en = i * bsize, min((i + 1) * bsize, len(tsen))
+                    st, en = i * bsize, min((i + 1) * bsize, len(tsen)) # 每块的起始位置和结束位置
                     cnt += 1
-                    tmp = tsen[st: en] + [tokenizer.sep_token]
+                    tmp = tsen[st: en] + [tokenizer.sep_token] # 每块的token列表
                     # inject properties into blks
                     tmp_kwargs = {}
                     for p in psen:
@@ -53,7 +67,8 @@ class Buffer:
                                 tmp_kwargs[p[0]] = (p[1] - st, p[2])
                         else:
                             raise ValueError('Invalid property {}'.format(p))
-                    ret.insert(Block(tokenizer.convert_tokens_to_ids(tmp), cnt, **tmp_kwargs))
+                    block = Block(tokenizer.convert_tokens_to_ids(tmp), cnt, **tmp_kwargs)
+                    ret.insert(block)
         else:
             # d is only a list of tokens, not split.
             # properties are also a list of tuples.
