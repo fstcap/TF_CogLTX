@@ -1,15 +1,19 @@
+import numpy as np
 from transformers import RobertaTokenizer
-from utils import BLOCK_SIZE, DEFAULT_MODEL_NAME # 默认模型roberta-base
+from utils import BLOCK_SIZE, DEFAULT_MODEL_NAME  # 默认模型roberta-base
+
 
 class Block:
     tokenizer = RobertaTokenizer.from_pretrained(DEFAULT_MODEL_NAME)
+
     def __init__(self, ids, pos, blk_type=1, **kwargs):
         self.ids = ids
         self.pos = pos
-        self.blk_type = blk_type # 0 sentence A, 1 sentence B
+        self.blk_type = blk_type  # 0 sentence A, 1 sentence B
         self.relevance = 0
         self.estimation = 0
         self.__dict__.update(kwargs)
+
     def __lt__(self, rhs):
         """
         逻辑运算小于，比较两个类的pos大小按快的原有顺序排列
@@ -17,6 +21,7 @@ class Block:
         :return:
         """
         return self.blk_type < rhs.blk_type or (self.blk_type == rhs.blk_type and self.pos < rhs.pos)
+
     def __ne__(self, rhs):
         """
         类的逻辑运算不相等
@@ -24,14 +29,17 @@ class Block:
         :return:
         """
         return self.pos != rhs.pos or self.blk_type != rhs.blk_type
+
     def __len__(self):
         return len(self.ids)
+
     def __str__(self):
         """
         显示块代表的字符串
         :return:
         """
         return Block.tokenizer.convert_tokens_to_string(Block.tokenizer.convert_ids_to_tokens(self.ids))
+
 
 class Buffer:
     @staticmethod
@@ -52,11 +60,11 @@ class Buffer:
             for sid, tsen in enumerate(d):
                 psen = properties[sid] if properties is not None else []
                 num = updiv(len(tsen), BLOCK_SIZE)  # 计算以63长度每快，分组加一
-                bsize = updiv(len(tsen), num) # 最终有num组，每块长度是bsize
+                bsize = updiv(len(tsen), num)  # 最终有num组，每块长度是bsize
                 for i in range(num):
-                    st, en = i * bsize, min((i + 1) * bsize, len(tsen)) # 每块的起始位置和结束位置
+                    st, en = i * bsize, min((i + 1) * bsize, len(tsen))  # 每块的起始位置和结束位置
                     cnt += 1
-                    tmp = tsen[st: en] + [tokenizer.sep_token] # 每块的token列表
+                    tmp = tsen[st: en] + [tokenizer.sep_token]  # 每块的token列表
                     # inject properties into blks
                     tmp_kwargs = {}
                     for p in psen:
@@ -122,6 +130,7 @@ class Buffer:
                 ret.insert(Block(tokenizer.convert_tokens_to_ids(tmp), cnt, **tmp_kwargs))
 
         return ret, cnt
+
     def __init__(self):
         self.blocks = []
 
@@ -130,6 +139,10 @@ class Buffer:
 
     def __getitem__(self, key):
         return self.blocks[key]
+
+    def sort_(self):
+        self.blocks.sort()
+        return self
 
     def insert(self, b, reverse=True):
         if not reverse:
@@ -142,3 +155,45 @@ class Buffer:
                 if index == 0 or self.blocks[index - 1] < b:
                     self.blocks.insert(index, b)
                     break
+
+    def filtered(self, fltr: 'function blk, index->bool', need_residue=False):
+        ret, ret2 = Buffer(), Buffer()
+        for i, blk in enumerate(self.blocks):
+            if fltr(blk, i):
+                ret.blocks.append(blk)
+            else:
+                ret2.blocks.append(blk)
+        if need_residue:
+            return ret, ret2
+        else:
+            return ret
+
+    def export(self):
+        """计算bert的三个输入ids，att_masks，type_ids
+        :return:
+        """
+        ids = [[]]
+        att_masks = [[]]
+        type_ids = [[]]
+        for b in self.blocks:
+            ids = np.concatenate((ids, [b.ids]), axis=1)
+            att_masks = np.concatenate((att_masks, [np.ones_like(b.ids)]), axis=1)
+            if b.blk_type == 1:
+                type_ids = np.concatenate((type_ids, [np.array([1] * len(b))]), axis=1)
+            else:
+                type_ids = np.concatenate((type_ids, [np.array([0] * len(b))]), axis=1)
+        inputs = np.concatenate((ids, att_masks, type_ids), axis=0)
+        return inputs.astype(np.int64)
+
+    def export_relevance(self):
+        """得出block对应label
+        relevance>=1=>label=1
+        relevance< 1=>label=0
+        """
+        relevance = []
+        for b in self.blocks:
+            if b.relevance >= 1:
+                relevance.extend([1] * len(b))
+            else:
+                relevance.extend([0] * len(b))
+        return np.array([relevance])
