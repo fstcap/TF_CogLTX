@@ -1,4 +1,5 @@
 .idea/*
 venv/*
 data/*
+tmp_dir/*
 combined-newsqa-data-v1*

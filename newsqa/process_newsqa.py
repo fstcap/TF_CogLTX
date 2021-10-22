@@ -24,7 +24,7 @@ with open(os.path.join(data_dir, 'combined-newsqa-data-v1.json'), 'r') as fin:
 invalid_chrs = set(string.punctuation + string.whitespace) # 无效字符集!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~和空字符
 tokenizer = RobertaTokenizer.from_pretrained(DEFAULT_MODEL_NAME)
 train_batches, test_json, test_batches, cnt = [], {}, [], 0
-for data in tqdm(dataset['data'][:3]):
+for data in tqdm(dataset['data'][:2]):
     """将每段文本用\n分割开并去除\n符号储存在sentences中
     将分割位置的index记录在sen_offsets中
     """

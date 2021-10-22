@@ -2,7 +2,7 @@ import logging
 import pickle
 import random
 from tqdm import tqdm # 引入进度条模块
-from utils import CAPACITY, BLOCK_SIZE
+from utils import CAPACITY, BLOCK_SIZE, ESTIMATIONS_FILE_PATH
 from buffer import Buffer
 
 class SimpleListDataset:
@@ -66,3 +66,10 @@ class BlkPosInterface:
                 buf.blocks = qbuf.blocks + selected_pblks + selected_nblks # 随机一个含有最多正样本其余为负样本的组合
                 ret.append(buf.sort_())
         return SimpleListDataset(ret)
+
+    def collect_estimations_from_dir(self):
+        with open(ESTIMATIONS_FILE_PATH, 'r') as fin:
+            for line in fin:
+                l = line.split()
+                pos, estimation = int(l[0]), float(l[1])
+                self.d[pos].estimation = estimation

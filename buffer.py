@@ -54,6 +54,7 @@ class Buffer:
                             []... # len(d) lists
                         ]
         '''
+
         ret = Buffer()
         updiv = lambda a, b: (a - 1) // b + 1
         if hard:
@@ -143,6 +144,16 @@ class Buffer:
     def sort_(self):
         self.blocks.sort()
         return self
+
+    def block_ends(self):
+        """计算每个block结尾的index+1
+        :return:
+        """
+        t, ret = 0, []
+        for b in self.blocks:
+            t += len(b)
+            ret.append(t)
+        return ret
 
     def insert(self, b, reverse=True):
         if not reverse:
