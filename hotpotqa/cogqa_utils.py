@@ -3,6 +3,7 @@ from fuzzywuzzy import fuzz
 from bisect import bisect_left
 import numpy as np
 
+
 def dp(a, b):
     """A basic Dynamic programming for Edit-distance based fuzzy matching.
 
@@ -33,6 +34,7 @@ def dp(a, b):
     ret = [start[len(a) - 1, r], r + 1]
     score = f[len(a) - 1, r] / len(a)
     return (ret, score)
+
 
 def fuzzy_find(entities, sentence, ratio=80):
     """Try to find as much entities in sentence precisely.
@@ -108,6 +110,7 @@ def fuzzy_find(entities, sentence, ratio=80):
             non_intersection.append(ret[i][:4])
     return non_intersection
 
+
 def find_start_end_after_tokenized(tokenizer, tokenized_text, spans: ['Obama Care', '2006']):
     """查找答案在该以转换成tokenizes的列表中的起始和结束index
     
@@ -127,16 +130,16 @@ def find_start_end_after_tokenized(tokenizer, tokenized_text, spans: ['Obama Car
         end_offset.append(offset)
     text = ''.join(tokenized_text).replace('<pad>', '')
     for span in spans:
-        t = ''.join(tokenizer.tokenize(span)).replace('<pad>', '')
+        tokenized_span = tokenizer.tokenize(span)
+        t = ''.join(tokenized_span).replace('<pad>', '')
         start = text.find(t)
         if start >= 0:
-            end = start + len(t) - 1 # include end
+            end = start + len(t) - 1  # include end
         else:
             result = fuzzy_find([t], text)
             if len(result) == 0:
-                return None # cannot find exact match
+                return None  # cannot find exact match
             _, _, start, end = result[0]
             end -= 1
         ret.append((bisect_left(end_offset, start), bisect_left(end_offset, end)))
     return ret
-

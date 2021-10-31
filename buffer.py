@@ -1,3 +1,4 @@
+import random
 import numpy as np
 from transformers import RobertaTokenizer
 from utils import BLOCK_SIZE, DEFAULT_MODEL_NAME  # 默认模型roberta-base
@@ -78,57 +79,6 @@ class Buffer:
                             raise ValueError('Invalid property {}'.format(p))
                     block = Block(tokenizer.convert_tokens_to_ids(tmp), cnt, **tmp_kwargs)
                     ret.insert(block)
-        else:
-            # d is only a list of tokens, not split.
-            # properties are also a list of tuples.
-            end_tokens = {'\n': 0, '.': 1, '?': 1, '!': 1, ',': 2}
-            for k, v in list(end_tokens.items()):
-                end_tokens['Ġ' + k] = v
-            sen_cost, break_cost = 4, 8
-            poses = [(i, end_tokens[tok]) for i, tok in enumerate(d) if tok in end_tokens]
-            poses.insert(0, (-1, 0))
-            if poses[-1][0] < len(d) - 1:
-                poses.append((len(d) - 1, 0))
-            x = 0
-            while x < len(poses) - 1:
-                if poses[x + 1][0] - poses[x][0] > BLOCK_SIZE:
-                    poses.insert(x + 1, (poses[x][0] + BLOCK_SIZE, break_cost))
-                x += 1
-            # simple dynamic programming
-            best = [(0, 0)]
-            for i, (p, cost) in enumerate(poses):
-                if i == 0:
-                    continue
-                best.append((-1, 100000))
-                for j in range(i - 1, -1, -1):
-                    if p - poses[j][0] > BLOCK_SIZE:
-                        break
-                    value = best[j][1] + cost + sen_cost
-                    if value < best[i][1]:
-                        best[i] = (j, value)
-                assert best[i][0] >= 0
-            intervals, x = [], len(poses) - 1
-            while x > 0:
-                l = poses[best[x][0]][0]
-                intervals.append((l + 1, poses[x][0] + 1))
-                x = best[x][0]
-            if properties is None:
-                properties = []
-            for st, en in reversed(intervals):
-                # copy from hard version
-                cnt += 1
-                tmp = d[st: en] + [tokenizer.sep_token]
-                # inject properties into blks
-                tmp_kwargs = {}
-                for p in properties:
-                    if len(p) == 2:
-                        tmp_kwargs[p[0]] = p[1]
-                    elif len(p) == 3:
-                        if st <= p[1] < en:
-                            tmp_kwargs[p[0]] = (p[1] - st, p[2])
-                    else:
-                        raise ValueError('Invalid property {}'.format(p))
-                ret.insert(Block(tokenizer.convert_tokens_to_ids(tmp), cnt, **tmp_kwargs))
 
         return ret, cnt
 
@@ -166,6 +116,13 @@ class Buffer:
                 if index == 0 or self.blocks[index - 1] < b:
                     self.blocks.insert(index, b)
                     break
+
+    def random_sample(self, size):
+        assert size <= len(self.blocks)
+        index = sorted(random.sample(range(len(self.blocks)), size))
+        ret = Buffer()
+        ret.blocks = [self.blocks[i] for i in index]
+        return ret
 
     def filtered(self, fltr: 'function blk, index->bool', need_residue=False):
         ret, ret2 = Buffer(), Buffer()

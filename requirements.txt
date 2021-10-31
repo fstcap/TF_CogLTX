@@ -1,4 +1,5 @@
 transformers == 4.11.1
 tensorflow == 2.6.0
+tensorflow-text = 2.6.0
 fuzzywuzzy == 0.18.0
 python-levenshtein == 0.12.2

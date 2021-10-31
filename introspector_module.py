@@ -2,26 +2,13 @@ import os
 import numpy as np
 import tensorflow as tf
 from models import Introspector
-from utils import ESTIMATIONS_FILE_PATH, score_blocks
-
-class CustomSchedule(tf.keras.optimizers.schedules.LearningRateSchedule):
-    """自定义变化学习率
-    """
-    def __init__(self, initial_learning_rate=2e-5, warmup_steps=4000):
-        super(CustomSchedule, self).__init__()
-        self.initial_learning_rate = initial_learning_rate
-        self.warmup_steps = warmup_steps
-
-    def __call__(self, step):
-        arg1 = tf.math.rsqrt(step)
-        arg2 = step * (self.warmup_steps ** -1.5) + self.initial_learning_rate
-
-        return tf.math.minimum(arg1, arg2)
+from utils import ESTIMATIONS_FILE_PATH, DEFAULT_MODEL_NAME, score_blocks, CustomSchedule, SAVEDIR
 
 
 class IntrospectorModule:
     """设置分类训练的超参数和步骤
     """
+
     def __init__(self, train_data_size, epochs=3, batch_size=32):
         self.epochs = epochs
         self.batch_size = batch_size
@@ -100,7 +87,10 @@ class IntrospectorModule:
         attention_mask = inputs[:, 1, :]
         label = inputs[:, 3, :][:, :, tf.newaxis]
 
-        self.introspector = Introspector(inputs.shape[-1])
+        print(f"\033[0;35m input_ids:\033[0;36m{input_ids}\033[0m")
+        print(f"\033[0;35m Attention_mask:\033[0;36m{attention_mask}\033[0m")
+
+        self.introspector = Introspector.from_pretrained(DEFAULT_MODEL_NAME)
         self.introspector.compile(
             optimizer=self.optimizer,
             loss=self.loss_fn,
@@ -109,6 +99,10 @@ class IntrospectorModule:
         self.introspector.fit(
             x={'input_ids': input_ids, 'attention_mask': attention_mask},
             y=label, batch_size=self.batch_size, epochs=self.epochs)
+
+        if not os.path.exists(SAVEDIR):
+            os.makedirs(SAVEDIR)
+        self.introspector.save_pretrained(os.path.join(SAVEDIR, 'introspector'))
 
         logits = self.introspector.predict(
             x={'input_ids': input_ids, 'attention_mask': attention_mask},

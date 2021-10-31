@@ -2,4 +2,5 @@
 venv/*
 data/*
 tmp_dir/*
+save_dir/*
 combined-newsqa-data-v1*
