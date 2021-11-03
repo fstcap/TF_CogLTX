@@ -49,8 +49,8 @@ class QAReasoner(TFRobertaPreTrainedModel):
         sequence_output = outputs[0]
 
         logits = self.qa_outputs(sequence_output)
-        logits_shape = logits.shape
-        start_end = tf.reshape(logits, shape=(logits_shape[0], logits_shape[2], logits_shape[1]))
+
+        start_end = tf.transpose(logits, perm=[0, 2, 1])
         return start_end
 
     @classmethod

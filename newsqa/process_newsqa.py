@@ -26,7 +26,7 @@ tokenizer = RobertaTokenizer.from_pretrained(DEFAULT_MODEL_NAME)
 # p_tokenizer = PreprocessorTokenize()
 
 train_batches, test_json, test_batches, cnt = [], {}, [], 0
-for data in tqdm(dataset['data'][:2]):
+for data in tqdm(dataset['data']):
     """将每段文本用\n分割开并去除\n符号储存在sentences中
     将分割位置的index记录在sen_offsets中
     """

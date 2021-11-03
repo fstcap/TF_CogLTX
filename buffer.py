@@ -1,7 +1,7 @@
 import random
 import numpy as np
 from transformers import RobertaTokenizer
-from utils import BLOCK_SIZE, DEFAULT_MODEL_NAME  # 默认模型roberta-base
+from utils import CAPACITY, BLOCK_SIZE, DEFAULT_MODEL_NAME  # 默认模型roberta-base
 
 
 class Block:
@@ -105,6 +105,25 @@ class Buffer:
             ret.append(t)
         return ret
 
+    def clone(self):
+        ret = Buffer()
+        ret.blocks = self.blocks.copy()
+        return ret
+
+    def calc_size(self):
+        return sum([len(b) for b in self.blocks])
+
+    def fill(self, buf):
+        ret, tmp_buf, tmp_size = [], self.clone(), self.calc_size()
+        for blk in buf:
+            if tmp_size + len(blk) > CAPACITY:
+                ret.append(tmp_buf)
+                tmp_buf, tmp_size = self.clone(), self.calc_size()
+            tmp_buf.blocks.append(blk)
+            tmp_size += len(blk)
+        ret.append(tmp_buf)
+        return ret
+
     def insert(self, b, reverse=True):
         if not reverse:
             for index in range(len(self.blocks) + 1):
@@ -125,6 +144,12 @@ class Buffer:
         return ret
 
     def filtered(self, fltr: 'function blk, index->bool', need_residue=False):
+        """
+        过滤出正负block
+        :param fltr:
+        :param need_residue:
+        :return:
+        """
         ret, ret2 = Buffer(), Buffer()
         for i, blk in enumerate(self.blocks):
             if fltr(blk, i):

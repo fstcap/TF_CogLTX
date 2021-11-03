@@ -24,6 +24,9 @@ class IntrospectorModule:
 
         self.loss_fn = tf.keras.losses.CategoricalCrossentropy(name='categorical_crossentropy')
 
+        self.introspector = Introspector.from_pretrained(DEFAULT_MODEL_NAME)
+
+
     def buf_to_input(self, buf):
         """
         转换成bert输入
@@ -87,10 +90,6 @@ class IntrospectorModule:
         attention_mask = inputs[:, 1, :]
         label = inputs[:, 3, :][:, :, tf.newaxis]
 
-        print(f"\033[0;35m input_ids:\033[0;36m{input_ids}\033[0m")
-        print(f"\033[0;35m Attention_mask:\033[0;36m{attention_mask}\033[0m")
-
-        self.introspector = Introspector.from_pretrained(DEFAULT_MODEL_NAME)
         self.introspector.compile(
             optimizer=self.optimizer,
             loss=self.loss_fn,

@@ -7,4 +7,5 @@ CogLTX tensorflow版本，bert长文本处理
 将生成combined-newsqa-data-v1.json文件放在newsqa文件夹下
 
 ## 运行
-首先运行newsqa/process_newsqa.py文件进行分块处理
+首先运行newsqa/process_newsqa.py文件进行分块处理，data文件夹下会生成newsqa_test_roberta-base.pkl和newsqa_train_roberta-base.pkl
+在运行run_newsqa.py进行训练预测

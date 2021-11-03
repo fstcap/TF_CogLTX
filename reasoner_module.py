@@ -68,4 +68,4 @@ class ReasonerModule:
             x={'input_ids': input_ids, 'attention_mask': attention_mask},
             y=labels, batch_size=self.batch_size, epochs=self.epochs)
 
-        self.introspector.save_pretrained(os.path.join(SAVEDIR, 'introspector'))
+        self.qa_reasoner.save_pretrained(os.path.join(SAVEDIR, 'reasoner'))
