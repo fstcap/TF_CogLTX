@@ -183,7 +183,7 @@ class Buffer:
         """
         relevance = []
         for b in self.blocks:
-            if b.relevance >= 1 and (hasattr(b, 'start') or hasattr(b, 'end')):
+            if b.relevance >= 1:
                 relevance.extend([1] * len(b))
             else:
                 relevance.extend([0] * len(b))
