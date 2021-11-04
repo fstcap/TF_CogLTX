@@ -45,16 +45,14 @@ class Block:
 class Buffer:
     @staticmethod
     def split_document_into_blocks(d, tokenizer, cnt=0, hard=True, properties=None):
-        '''
-            d: [['word', '##piece'], ...] # a document of tokenized sentences
-            properties: [
-                            [
-                                (name: str, value: any), # len(2) tuple, sentence level property
-                                (name: str, position: int, value: any) # len(3) tuple, token level property
-                            ],
-                            []... # len(d) lists
-                        ]
-        '''
+        """分割段成block
+        :param d:
+        :param tokenizer:
+        :param cnt:
+        :param hard:
+        :param properties:
+        :return:
+        """
 
         ret = Buffer()
         updiv = lambda a, b: (a - 1) // b + 1
@@ -185,7 +183,7 @@ class Buffer:
         """
         relevance = []
         for b in self.blocks:
-            if b.relevance >= 1:
+            if b.relevance >= 1 and (hasattr(b, 'start') or hasattr(b, 'end')):
                 relevance.extend([1] * len(b))
             else:
                 relevance.extend([0] * len(b))

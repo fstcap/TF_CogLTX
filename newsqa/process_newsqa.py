@@ -63,8 +63,7 @@ for data in tqdm(dataset['data']):
                 若答案的位置最后一位字符是无效字符就去除
                 """
                 s, e = raw_q['consensus']['s'], raw_q['consensus']['e']
-                while e > s and data['text'][
-                    e - 1] in invalid_chrs:  # e-1是因为data['text'][s:e]中data['text'][e]不是最后一位，而是data['text'][e-1]
+                while e > s and data['text'][e - 1] in invalid_chrs:   # e-1是因为data['text'][s:e]中data['text'][e]不是最后一位，而是data['text'][e-1]
                     e -= 1
                 if s >= e:
                     logging.warning(f"这个答案是错误的. {qid} {data['text'][s:e]}")
@@ -98,8 +97,8 @@ for data in tqdm(dataset['data']):
                 if article_buf is None:
                     article_buf = dbuf
                 else:  # carefully build new dbuf with shared ids
-                    for i, blk in enumerate(dbuf):
-                        blk.ids = article_buf[i].ids
+                    for i_blk, blk in enumerate(dbuf):
+                        blk.ids = article_buf[i_blk].ids
                 if data['type'] != 'test':
                     train_batches.append((qbuf, dbuf))
                 else:
