@@ -23,3 +23,13 @@ python newsqa/process_newsqa.py
 ```
 python run_newsqa.py
 ```
+## 流程梳理
+#### 分块（block）
+> 1、将text按照换行符分割成段，并每段进行分词得到tokenize列表；  
+> 2、每个question作为一个样本，查找出该question对应answer的段，并找出answer的起始位置对应该段落tokenize的index，answer没有分布在同一段就抛弃该问题;  
+> 3、把question, text分割成63个tokenize的block。  
+> question_blocks:  
+> [CLS+tokenize<sub>63</sub>+SEP,tokenize<sub>63</sub>+SEP, tokenize<sub>63</sub>+SEP]  
+> text_blocks:  
+> [tokenize<sub>63</sub>+SEP,tokenize<sub>63</sub>+SEP, tokenize<sub>63</sub>+SEP]  
+> 4、将blocks转换成ids，赋值给Block类的ids属性，answer所在段的所有Block的relevance赋值3，answer所在的Block添加start和end属性并赋值上以该block作为起点answer起止tokenize的index；  
