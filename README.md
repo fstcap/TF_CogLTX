@@ -62,5 +62,5 @@ python run_newsqa.py
 > 1、text分割tokenize列表长度63的block，每个把question和text中所有block分别组成小于512的样本；  
 > 2、所有样本通过训练后的introspector模型进行打分，挑选出前几位按照text原本顺序排序和question组成小于512的样本；  
 > 3、该样本再次用introspector模型进行打分，question tokenize长度加上5的长度数量的样本数；  
-> 4、该样本用reasoner模型预测得出answer的tokenize对应始末的索引；
+> 4、该样本用reasoner模型预测得出answer的tokenize对应始末的索引；  
 > 5、根据索引提取tokenize列表，转化成answer。
