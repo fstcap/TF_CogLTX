@@ -13,7 +13,7 @@ class ReasonerModule:
         num_train_steps = steps_per_epoch * epochs
         warmup_steps = int(epochs * train_data_size * 0.1 / batch_size)
 
-        learning_rate = CustomSchedule(2e-5)
+        learning_rate = CustomSchedule(2e-5, warmup_steps)
 
         self.optimizer = tf.keras.optimizers.Adam(
             learning_rate, beta_1=0.9, beta_2=0.98, epsilon=1e-9)
