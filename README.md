@@ -1,5 +1,5 @@
 # TF_CogLTX
-CogLTX tensorflow版本，bert超过512文本处理，长文本数据普遍存在，且文本中包含的信息非常分散，难以使用滑动窗口[2]截断。 [论文地址](https://keg.cs.tsinghua.edu.cn/jietang/publications/NIPS20-Ding-et-al-CogLTX.pdf)   
+CogLTX tensorflow版本，bert超过512文本处理，长文本数据普遍存在，且文本中包含的信息非常分散，难以使用滑动窗口截断。 [论文地址](https://keg.cs.tsinghua.edu.cn/jietang/publications/NIPS20-Ding-et-al-CogLTX.pdf)   
 问答提取，分类下次更新
 
 ## 数据来源
